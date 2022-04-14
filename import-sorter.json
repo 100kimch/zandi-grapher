@@ -1,0 +1,41 @@
+{
+  "importStringConfiguration": {
+    "trailingComma": "multiLine",
+    "tabSize": 2,
+    "maximumNumberOfImportExpressionsPerLine": {
+      "type": "newLineEachExpressionAfterCountLimit",
+      "count": 80
+    }
+  },
+  "sortConfiguration": {
+    "customOrderingRules": {
+      "defaultOrderLevel": 10,
+      "rules": [
+        {
+          "regex": "^(@)",
+          "orderLevel": 20
+        },
+        {
+          "regex": "^[#]",
+          "orderLevel": 12
+        },
+        {
+          "regex": "^(../)",
+          "orderLevel": 13
+        },
+        {
+          "regex": "^(./)",
+          "orderLevel": 14
+        },
+        {
+          "regex": "^[a-z,A-Z]",
+          "orderLevel": 10
+        },
+        {
+          "regex": "(a)$",
+          "orderLevel": 15
+        }
+      ]
+    }
+  }
+}

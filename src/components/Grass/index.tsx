@@ -45,6 +45,8 @@ export default ({ ...otherProps }: Props) => {
           tall = Math.min(x / 2, maxTall),
           size = Math.min(x / 10, maxSize);
         x += speed;
+        console.log('x: ', x);
+
         ctx.save();
         // ctx.strokeWidth = 10;
         ctx.translate(w / 2 + position, h);

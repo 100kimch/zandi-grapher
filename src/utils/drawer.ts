@@ -1,4 +1,4 @@
-import { SPACING } from '~constants';
+import { POS_ZANDIS, SPACING } from '~constants';
 
 type DrawObject = (
   ctx: CanvasRenderingContext2D,
@@ -7,7 +7,16 @@ type DrawObject = (
   dx: number,
   dy: number,
   h: number
-) => void;
+) => (() => void)[];
+
+type DrawCallback = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+  h: number
+) => () => void;
 
 const GRID_SIZE = 10;
 const c = (l: number, u: number) =>
@@ -21,41 +30,50 @@ export const drawCube: DrawObject = (
   dy: number,
   h: number
 ) => {
-  // center face
-  ctx.beginPath();
-  ctx.moveTo(x + dx, y);
-  ctx.lineTo(x + 2 * dx, y + dy);
-  ctx.lineTo(x + dx, y + 2 * dy);
-  ctx.lineTo(x, y + dy);
-  ctx.closePath();
-  ctx.fillStyle = '#989865';
-  ctx.strokeStyle = '#8e8e5e';
-  ctx.stroke();
-  ctx.fill();
+  return [
+    () => {
+      ctx.save();
+      ctx.translate(x, y);
 
-  // left face
-  ctx.beginPath();
-  ctx.moveTo(x, y + dy);
-  ctx.lineTo(x + dx, y + 2 * dy);
-  ctx.lineTo(x + dx, y + 2 * dy + h);
-  ctx.lineTo(x, y + dy + h);
-  ctx.closePath();
-  ctx.fillStyle = '#838357';
-  ctx.strokeStyle = '#7a7a51';
-  ctx.stroke();
-  ctx.fill();
+      // center face
+      ctx.beginPath();
+      ctx.moveTo(dx, 0);
+      ctx.lineTo(2 * dx, dy);
+      ctx.lineTo(dx, 2 * dy);
+      ctx.lineTo(0, dy);
+      ctx.closePath();
+      ctx.fillStyle = '#989865';
+      ctx.strokeStyle = '#8e8e5e';
+      ctx.stroke();
+      ctx.fill();
 
-  // left face
-  ctx.beginPath();
-  ctx.moveTo(x + dx, y + 2 * dy);
-  ctx.lineTo(x + 2 * dx, y + dy);
-  ctx.lineTo(x + 2 * dx, y + dy + h);
-  ctx.lineTo(x + dx, y + 2 * dy + h);
-  ctx.closePath();
-  ctx.fillStyle = '#6f6f49';
-  ctx.strokeStyle = '#676744';
-  ctx.stroke();
-  ctx.fill();
+      // left face
+      ctx.beginPath();
+      ctx.moveTo(0, dy);
+      ctx.lineTo(dx, 2 * dy);
+      ctx.lineTo(dx, 2 * dy + h);
+      ctx.lineTo(0, dy + h);
+      ctx.closePath();
+      ctx.fillStyle = '#838357';
+      ctx.strokeStyle = '#7a7a51';
+      ctx.stroke();
+      ctx.fill();
+
+      // left face
+      ctx.beginPath();
+      ctx.moveTo(dx, 2 * dy);
+      ctx.lineTo(2 * dx, dy);
+      ctx.lineTo(2 * dx, dy + h);
+      ctx.lineTo(dx, 2 * dy + h);
+      ctx.closePath();
+      ctx.fillStyle = '#6f6f49';
+      ctx.strokeStyle = '#676744';
+      ctx.stroke();
+      ctx.fill();
+
+      ctx.restore();
+    },
+  ];
 };
 
 export const drawGrasses: DrawObject = (
@@ -66,58 +84,63 @@ export const drawGrasses: DrawObject = (
   dy: number,
   h: number
 ) => {
-  const drawGrass: DrawObject = (ctx, x, y, dx, dy, h) => {
-    const maxTall = Math.random() * 0.5 * dy + dy / 2;
-    const maxSize = Math.random() * 10;
+  const stack: (() => void)[] = [];
+  // const clipBlock: DrawObject = (ctx, x, y, dx, dy, h) => {
+  //   const region = new Path2D();
+  //   region.moveTo(x - dx, y - h);
+  //   region.lineTo(x + 3 * dx, y - h);
+  //   region.lineTo(x + 2 * dx, y + dy);
+  //   region.lineTo(x + dx, y + 2 * dy);
+  //   region.lineTo(x, y + dy);
+  //   region.lineTo(x, y + dy);
+  //   region.closePath();
+  //   ctx.clip(region);
+  // };
+  const drawGrass: DrawCallback = (ctx, x, y, dx, dy, h) => {
+    let t = 0;
+    const tall = 4 * (Math.random() * 0.4 + 0.6) * h;
+    const size = ((Math.random() * 0.4 + 0.6) * dx) / 4;
     const speed = Math.random() * 2;
-    const position = Math.random() * dx - dx / 2;
 
     const color =
       'rgb(' + c(60, 10) + ',' + c(201, 50) + ',' + c(120, 50) + ')';
-    const deviation = Math.cos(dx / 50) * Math.min(dx / 20, 50),
-      tall = Math.min(dy / 2, maxTall),
-      size = Math.min(dx / 5, maxSize);
-    x += speed;
-    ctx.translate(dx / 2 + position, h);
-    // ctx.translate(x, y);
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.lineTo(-size, 0);
-    ctx.quadraticCurveTo(-size, -tall / 2, deviation, -tall);
-    ctx.quadraticCurveTo(size, -tall / 2, size, 0);
-    ctx.fill();
+
+    return () => {
+      const deviation = Math.cos(t / 50) * Math.min(t / 20, dx);
+      t += speed;
+      // console.log('t: ', t);
+
+      ctx.save();
+      ctx.translate(x + dx, y + dy);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.lineTo(-size, 0);
+      ctx.quadraticCurveTo(-size, -tall / 2, deviation, -tall);
+      ctx.quadraticCurveTo(size, -tall / 2, size, 0);
+      ctx.fill();
+      ctx.restore();
+    };
   };
-  // ctx.clearRect(x, y, x + 2 * dx, y + 2 * dy);
-  // ctx.fillStyle = 'red';
-  // ctx.fillRect(x, y, 100, y + 2 * dy);
 
-  for (let i = 0; i < 20; i++) {
-    const px = x + Math.random() * dx * 2 - dx / 2,
-      py = y + Math.random() * dy * 2 - dy / 2 - h;
+  POS_ZANDIS[parseInt('' + Math.random() * 2, 10)].forEach((posZandi) => {
+    console.log('pos: ', posZandi);
+    // ctx.save();
+    // ctx.translate(x, y);
+    // clipBlock(ctx, 0, 0, dx, dy, h);
+    stack.push(drawGrass(ctx, x + posZandi[0], y + posZandi[1], dx, dy, h));
+    // ctx.restore();
+  });
 
-    ctx.save();
-    const region = new Path2D();
-    region.moveTo(x - dx, y - h);
-    region.lineTo(x + 3 * dx, y - h);
-    region.lineTo(x + 2 * dx, y + dy);
-    region.lineTo(x + dx, y + 2 * dy);
-    region.lineTo(x, y + dy);
-    region.lineTo(x, y + dy);
-    // region.moveTo(0, 0);
-    // region.lineTo(2 * dx, dy);
-    // region.lineTo(dx, 2 * dy);
-    // region.lineTo(0, dy);
-    region.closePath();
-    // region.rect(-100, 400, 1000, 1000);
-
-    ctx.fillStyle = 'blue';
-    ctx.clip(region);
-
-    ctx.translate(px, py);
-    drawGrass(ctx, 0, 0, 20, 80, h);
-    ctx.restore();
-  }
+  return stack;
 };
+
+// const drawGrasses: DrawObject = (ctx, x, y, dx, dy, h) => {
+//   POS_ZANDIS[parseInt('' + Math.random() * 2, 10)].forEach((posZandi) => {
+//     stackDrawingObject.push(
+//       drawGrass(ctx, x + posZandi[0], y + posZandi[1], dx, dy, h)
+//     );
+//   });
+// };
 
 export const drawRectS: DrawObject = (
   ctx: CanvasRenderingContext2D,
@@ -127,26 +150,30 @@ export const drawRectS: DrawObject = (
   dy: number,
   h: number
 ) => {
-  ctx.save();
-  ctx.fillStyle = 'red';
-  ctx.fillRect(x, y, dx, dy);
-  console.log('x: ', x, 'y: ', y);
-  ctx.translate(x, y);
+  return [
+    () => {
+      ctx.save();
+      ctx.fillStyle = 'red';
+      ctx.fillRect(x, y, dx, dy);
+      console.log('x: ', x, 'y: ', y);
+      ctx.translate(x, y);
 
-  const tileX = dx / 8;
+      const tileX = dx / 8;
 
-  for (let i = 0; i < 20; i++) {
-    const px = Math.random() * (dx - tileX),
-      py = Math.random() * (dy - tileX);
-    const color =
-      'rgb(' + c(120, 120) + ',' + c(120, 120) + ',' + c(120, 120) + ')';
-    ctx.save();
-    ctx.translate(px, py);
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, tileX, tileX);
-    ctx.restore();
-  }
-  ctx.restore();
+      for (let i = 0; i < 20; i++) {
+        const px = Math.random() * (dx - tileX),
+          py = Math.random() * (dy - tileX);
+        const color =
+          'rgb(' + c(120, 120) + ',' + c(120, 120) + ',' + c(120, 120) + ')';
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, tileX, tileX);
+        ctx.restore();
+      }
+      ctx.restore();
+    },
+  ];
 };
 
 export const draw = (
@@ -168,7 +195,7 @@ export const draw = (
   return () => {
     console.log('running: ', currentRef);
 
-    const H = drawingType === 'box' ? 5 : 50;
+    const H = drawingType === 'box' ? 5 : 15;
     const DX = 2 * (GRID_SIZE + SPACING),
       DY = GRID_SIZE + SPACING;
     const x0 = currentRef.width / 2 + 6 * DX;
@@ -177,7 +204,7 @@ export const draw = (
     console.log('xo: ', x0, y0);
 
     // drawGrasses(ctx, 50, 50, 50, 200, 100);
-    drawRectS(ctx, 50, 50, 100, 50, 100);
+    drawingType === 'box' && drawRectS(ctx, 50, 50, 100, 50, 100);
 
     dataChunks.map((contributes, y) =>
       contributes.map((_, x) =>
@@ -193,4 +220,48 @@ export const draw = (
     );
     ctx.restore();
   };
+};
+
+export const drawTest = (
+  ctx: CanvasRenderingContext2D,
+  currentRef: HTMLCanvasElement,
+  dataChunks: number[][],
+  drawingType: 'box' | 'grass'
+) => {
+  const drawObject = drawingType === 'box' ? drawCube : drawGrasses;
+  const stackDrawingObject: any[] = [];
+  const H = drawingType === 'box' ? 5 : 15;
+  const DX = 2 * (GRID_SIZE + SPACING),
+    DY = GRID_SIZE + SPACING;
+  const x0 = currentRef.width / 2 + 6 * DX;
+  const y0 = currentRef.height / 4 + 6 * DY;
+
+  ctx.lineJoin = 'round';
+  ctx.fillStyle = 'transparent';
+  ctx.scale(1, 1);
+
+  const render = () => {
+    ctx.clearRect(0, 0, currentRef.width, currentRef.height);
+    ctx.fillRect(0, 0, currentRef.width, currentRef.height);
+    stackDrawingObject.forEach((drawObject) => drawObject());
+
+    drawingType === 'grass' && requestAnimationFrame(render);
+  };
+
+  dataChunks.map((contributes, y) =>
+    contributes.map((_, x) =>
+      stackDrawingObject.push(
+        ...drawObject(
+          ctx,
+          x0 - (x + y) * DX,
+          y0 + (y - x) * DY,
+          2 * GRID_SIZE,
+          GRID_SIZE,
+          H
+        )
+      )
+    )
+  );
+
+  render();
 };

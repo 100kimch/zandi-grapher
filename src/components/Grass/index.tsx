@@ -45,7 +45,7 @@ export default ({ ...otherProps }: Props) => {
           tall = Math.min(x / 2, maxTall),
           size = Math.min(x / 10, maxSize);
         x += speed;
-        console.log('x: ', x);
+        // console.log('x: ', x);
 
         ctx.save();
         // ctx.strokeWidth = 10;
@@ -60,7 +60,7 @@ export default ({ ...otherProps }: Props) => {
       };
     };
 
-    for (var x = 0; x < 20; x++) {
+    for (var t = 0; t < 20; t++) {
       stack.push(drawGrass());
     }
 

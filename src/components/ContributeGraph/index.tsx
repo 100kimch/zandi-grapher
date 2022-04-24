@@ -27,18 +27,10 @@ export default ({ id, data, ...otherProps }: Props) => {
         id="box"
         ref={boxRef}
         style={{
-          width: '100%',
-          height: '100%',
+          marginBottom: boxRef.current ? -boxRef.current.clientHeight : 0,
         }}
       />
-      <canvas
-        id="grasses"
-        ref={grassRef}
-        style={{
-          width: '100%',
-          height: '100%',
-        }}
-      />
+      <canvas id="grasses" ref={grassRef} />
     </MainBlock>
   );
 };

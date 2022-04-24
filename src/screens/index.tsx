@@ -21,7 +21,8 @@ export default () => {
 
   return (
     <MainBlock>
-      <ContributeGraph data={rawData} />
+      <ContributeGraph id="sample1" data={rawData} />
+      {/* <Grass /> */}
       {/* <div id="graph">
         {contributeChunks.map((contributes, numRow) => (
           <div className="row" key={numRow}>

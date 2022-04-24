@@ -1,13 +1,15 @@
 import styled from 'styled-components';
 
 export const MainBlock = styled.div`
-  width: 800px;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  min-height: 15em;
 
   & > canvas {
-    position: absolute;
+    position: relative;
+    display: block;
     width: 100%;
-    min-height: 30em;
+    height: 100%;
   }
 
   @media (min-width: ${(props) => props.theme.screens.xl}) {

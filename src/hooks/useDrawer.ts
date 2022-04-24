@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { draw } from '~utils/drawer';
+import { draw, drawTest } from '~utils/drawer';
 
 export default (
   drawingType: 'box' | 'grass'
@@ -18,11 +18,7 @@ export default (
     ref.current.width = ref.current.clientWidth;
     ref.current.height = ref.current.clientHeight;
 
-    const test = (currentRef: HTMLCanvasElement) => {
-      requestAnimationFrame(draw(ctx, currentRef, dataChunks, drawingType));
-    };
-
-    test(ref.current);
+    drawTest(ctx, ref.current, dataChunks, drawingType);
   }, [dataChunks]);
 
   return [ref, updateDrawer];

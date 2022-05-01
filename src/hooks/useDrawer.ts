@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { draw, drawTest } from '~utils/drawer';
+import { renderLegend, renderObject } from '~utils/drawer';
 
 export default (
-  drawingType: 'box' | 'grass'
+  drawingType: 'legend' | 'box' | 'grass'
 ): [
   React.RefObject<HTMLCanvasElement>,
   React.Dispatch<React.SetStateAction<number[][]>>
@@ -18,7 +18,11 @@ export default (
     ref.current.width = ref.current.clientWidth;
     ref.current.height = ref.current.clientHeight;
 
-    drawTest(ctx, ref.current, dataChunks, drawingType);
+    if (drawingType === 'legend') {
+      renderLegend(ctx, ref.current, dataChunks, ['day', 'month']);
+    } else {
+      renderObject(ctx, ref.current, dataChunks, drawingType);
+    }
   }, [dataChunks]);
 
   return [ref, updateDrawer];

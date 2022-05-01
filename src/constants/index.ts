@@ -11,3 +11,5 @@ export const POS_ZANDIS: Array<Array<[number, number]>> = [
   ],
   [[-3.2, -1]],
 ];
+
+export const DAYS = ['토', '금', '목', '수', '화', '월', '일'];

@@ -1,4 +1,14 @@
-import { POS_ZANDIS, SPACING } from '~constants';
+import { DAYS, POS_ZANDIS, SPACING } from '~constants';
+
+type Value =
+  | {
+      text: string;
+      color?: never;
+    }
+  | {
+      text?: never;
+      color: string;
+    };
 
 type DrawObject = (
   ctx: CanvasRenderingContext2D,
@@ -6,7 +16,8 @@ type DrawObject = (
   y: number,
   dx: number,
   dy: number,
-  h: number
+  h: number,
+  value?: Value
 ) => (() => void)[];
 
 type DrawCallback = (
@@ -15,66 +26,60 @@ type DrawCallback = (
   y: number,
   dx: number,
   dy: number,
-  h: number
+  h: number,
+  value?: Value
 ) => () => void;
 
 const GRID_SIZE = 10;
+const DX = 2 * (GRID_SIZE + SPACING);
+const DY = GRID_SIZE + SPACING;
 const c = (l: number, u: number) =>
   Math.round(Math.random() * (u || 255) + l || 0);
 
-export const drawCube: DrawObject = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  h: number
-) => {
-  return [
-    () => {
-      ctx.save();
-      ctx.translate(x, y);
+export const drawCube: DrawObject = (ctx, x, y, dx, dy, h) => [
+  () => {
+    ctx.save();
+    ctx.translate(x, y);
 
-      // center face
-      ctx.beginPath();
-      ctx.moveTo(dx, 0);
-      ctx.lineTo(2 * dx, dy);
-      ctx.lineTo(dx, 2 * dy);
-      ctx.lineTo(0, dy);
-      ctx.closePath();
-      ctx.fillStyle = '#989865';
-      ctx.strokeStyle = '#8e8e5e';
-      ctx.stroke();
-      ctx.fill();
+    // center face
+    ctx.beginPath();
+    ctx.moveTo(dx, 0);
+    ctx.lineTo(2 * dx, dy);
+    ctx.lineTo(dx, 2 * dy);
+    ctx.lineTo(0, dy);
+    ctx.closePath();
+    ctx.fillStyle = '#989865';
+    ctx.strokeStyle = '#8e8e5e';
+    ctx.stroke();
+    ctx.fill();
 
-      // left face
-      ctx.beginPath();
-      ctx.moveTo(0, dy);
-      ctx.lineTo(dx, 2 * dy);
-      ctx.lineTo(dx, 2 * dy + h);
-      ctx.lineTo(0, dy + h);
-      ctx.closePath();
-      ctx.fillStyle = '#838357';
-      ctx.strokeStyle = '#7a7a51';
-      ctx.stroke();
-      ctx.fill();
+    // left face
+    ctx.beginPath();
+    ctx.moveTo(0, dy);
+    ctx.lineTo(dx, 2 * dy);
+    ctx.lineTo(dx, 2 * dy + h);
+    ctx.lineTo(0, dy + h);
+    ctx.closePath();
+    ctx.fillStyle = '#838357';
+    ctx.strokeStyle = '#7a7a51';
+    ctx.stroke();
+    ctx.fill();
 
-      // left face
-      ctx.beginPath();
-      ctx.moveTo(dx, 2 * dy);
-      ctx.lineTo(2 * dx, dy);
-      ctx.lineTo(2 * dx, dy + h);
-      ctx.lineTo(dx, 2 * dy + h);
-      ctx.closePath();
-      ctx.fillStyle = '#6f6f49';
-      ctx.strokeStyle = '#676744';
-      ctx.stroke();
-      ctx.fill();
+    // left face
+    ctx.beginPath();
+    ctx.moveTo(dx, 2 * dy);
+    ctx.lineTo(2 * dx, dy);
+    ctx.lineTo(2 * dx, dy + h);
+    ctx.lineTo(dx, 2 * dy + h);
+    ctx.closePath();
+    ctx.fillStyle = '#6f6f49';
+    ctx.strokeStyle = '#676744';
+    ctx.stroke();
+    ctx.fill();
 
-      ctx.restore();
-    },
-  ];
-};
+    ctx.restore();
+  },
+];
 
 export const drawGrasses: DrawObject = (
   ctx: CanvasRenderingContext2D,
@@ -85,17 +90,6 @@ export const drawGrasses: DrawObject = (
   h: number
 ) => {
   const stack: (() => void)[] = [];
-  // const clipBlock: DrawObject = (ctx, x, y, dx, dy, h) => {
-  //   const region = new Path2D();
-  //   region.moveTo(x - dx, y - h);
-  //   region.lineTo(x + 3 * dx, y - h);
-  //   region.lineTo(x + 2 * dx, y + dy);
-  //   region.lineTo(x + dx, y + 2 * dy);
-  //   region.lineTo(x, y + dy);
-  //   region.lineTo(x, y + dy);
-  //   region.closePath();
-  //   ctx.clip(region);
-  // };
   const drawGrass: DrawCallback = (ctx, x, y, dx, dy, h) => {
     let t = 0;
     const tall = 4 * (Math.random() * 0.4 + 0.6) * h;
@@ -108,7 +102,6 @@ export const drawGrasses: DrawObject = (
     return () => {
       const deviation = Math.cos(t / 50) * Math.min(t / 20, dx);
       t += speed;
-      // console.log('t: ', t);
 
       ctx.save();
       ctx.translate(x + dx, y + dy);
@@ -124,32 +117,44 @@ export const drawGrasses: DrawObject = (
 
   POS_ZANDIS[parseInt('' + Math.random() * 2, 10)].forEach((posZandi) => {
     console.log('pos: ', posZandi);
-    // ctx.save();
-    // ctx.translate(x, y);
-    // clipBlock(ctx, 0, 0, dx, dy, h);
     stack.push(drawGrass(ctx, x + posZandi[0], y + posZandi[1], dx, dy, h));
-    // ctx.restore();
   });
 
   return stack;
 };
 
-// const drawGrasses: DrawObject = (ctx, x, y, dx, dy, h) => {
-//   POS_ZANDIS[parseInt('' + Math.random() * 2, 10)].forEach((posZandi) => {
-//     stackDrawingObject.push(
-//       drawGrass(ctx, x + posZandi[0], y + posZandi[1], dx, dy, h)
-//     );
-//   });
-// };
+export const drawMonthText: DrawObject = (ctx, x, y, dx, dy, h, data) => [
+  () => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.textAlign = 'left';
+    ctx.font = dx + 'px non-serif';
+    ctx.fillStyle = 'rgb(40, 60, 50)';
+    const cos = Math.cos(Math.PI / 6);
+    const sin = Math.sin(Math.PI / 6);
+    ctx.transform(1, 0.5, -1, 0.5, 0, 0);
+    ctx.scale(1, 0.75);
+    ctx.fillText(!!data ? data.text + '월' : '', dx, dy * 2);
+    ctx.restore();
+  },
+];
 
-export const drawRectS: DrawObject = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  h: number
-) => {
+export const drawDayText: DrawObject = (ctx, x, y, dx, dy, h, data) => [
+  () => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.textAlign = 'left';
+    ctx.font = dx + 'px non-serif';
+    ctx.fillStyle = 'rgb(40, 60, 50)';
+    const cos = Math.cos(Math.PI / 6);
+    const sin = Math.sin(Math.PI / 6);
+    ctx.transform(1, 0.5, -1, 0.5, 0, 0);
+    ctx.fillText(!!data ? data.text ?? '' : '', dx, dy * 2);
+    ctx.restore();
+  },
+];
+
+export const drawRectS: DrawObject = (ctx, x, y, dx, dy, h) => {
   return [
     () => {
       ctx.save();
@@ -176,69 +181,79 @@ export const drawRectS: DrawObject = (
   ];
 };
 
-export const draw = (
+export const renderLegend = (
   ctx: CanvasRenderingContext2D,
   currentRef: HTMLCanvasElement,
   dataChunks: number[][],
-  drawingType: 'box' | 'grass'
+  drawingType: ('day' | 'month')[]
 ) => {
-  const drawObject = drawingType === 'box' ? drawCube : drawGrasses;
+  const stackDrawingObject: any[] = [];
+  const length = dataChunks.length;
+  const x0 = currentRef.width / 2 + 6 * DX;
+  const y0 = currentRef.height / 4 + 6 * DY;
+  const height = 15;
+  const a = new Date(Date.now());
+  const b = new Date(a.getFullYear() + '-01-01');
 
-  ctx.clearRect(0, 0, currentRef.width, currentRef.height);
-  ctx.fillStyle = 'transparent';
-  // ctx.fillStyle = drawingType === 'box' ? '#abdcab' : 'transparent';
-  ctx.fillRect(0, 0, currentRef.width, currentRef.height);
-  ctx.scale(1, 1);
+  const render = () => {
+    ctx.clearRect(0, 0, currentRef.width, currentRef.height);
+    ctx.fillRect(0, 0, currentRef.width, currentRef.height);
+    stackDrawingObject.forEach((drawObject) => drawObject());
+  };
+
   ctx.lineJoin = 'round';
-  ctx.save();
+  ctx.fillStyle = 'transparent';
+  ctx.scale(1, 1);
 
-  return () => {
-    console.log('running: ', currentRef);
-
-    const H = drawingType === 'box' ? 5 : 15;
-    const DX = 2 * (GRID_SIZE + SPACING),
-      DY = GRID_SIZE + SPACING;
-    const x0 = currentRef.width / 2 + 6 * DX;
-    const y0 = currentRef.height / 4 + 6 * DY;
-
-    console.log('xo: ', x0, y0);
-
-    // drawGrasses(ctx, 50, 50, 50, 200, 100);
-    drawingType === 'box' && drawRectS(ctx, 50, 50, 100, 50, 100);
-
-    dataChunks.map((contributes, y) =>
-      contributes.map((_, x) =>
-        drawObject(
+  if (drawingType.includes('month')) {
+    dataChunks.map((_, y) =>
+      stackDrawingObject.push(
+        ...drawMonthText(
           ctx,
-          x0 - x * DX - y * DX,
-          y0 + y * DY - x * DY,
+          x0 - (-1 + y) * DX,
+          y0 + (y + 1) * DY,
           2 * GRID_SIZE,
           GRID_SIZE,
-          H
+          height,
+          // NOTE this is teamorary state for a sample data.
+          y % 4 === 0
+            ? { text: '' + (a.getMonth() + 1 - parseInt('' + y / 4, 10)) }
+            : undefined
         )
       )
     );
-    ctx.restore();
-  };
+  }
+  if (drawingType.includes('day')) {
+    !!dataChunks[0] &&
+      dataChunks[0].map((_, x) =>
+        stackDrawingObject.push(
+          ...drawDayText(
+            ctx,
+            x0 - (x + length) * DX,
+            y0 + (length - x) * DY,
+            2 * GRID_SIZE,
+            GRID_SIZE,
+            height,
+            { text: DAYS[x] }
+          )
+        )
+      );
+  }
+
+  render();
 };
 
-export const drawTest = (
+export const renderObject = (
   ctx: CanvasRenderingContext2D,
   currentRef: HTMLCanvasElement,
   dataChunks: number[][],
   drawingType: 'box' | 'grass'
 ) => {
-  const drawObject = drawingType === 'box' ? drawCube : drawGrasses;
   const stackDrawingObject: any[] = [];
-  const H = drawingType === 'box' ? 5 : 15;
-  const DX = 2 * (GRID_SIZE + SPACING),
-    DY = GRID_SIZE + SPACING;
+  const drawObject = drawingType === 'box' ? drawCube : drawGrasses;
   const x0 = currentRef.width / 2 + 6 * DX;
   const y0 = currentRef.height / 4 + 6 * DY;
-
-  ctx.lineJoin = 'round';
-  ctx.fillStyle = 'transparent';
-  ctx.scale(1, 1);
+  const height = drawingType === 'box' ? 5 : 15;
 
   const render = () => {
     ctx.clearRect(0, 0, currentRef.width, currentRef.height);
@@ -247,6 +262,10 @@ export const drawTest = (
 
     drawingType === 'grass' && requestAnimationFrame(render);
   };
+
+  ctx.lineJoin = 'round';
+  ctx.fillStyle = 'transparent';
+  ctx.scale(1, 1);
 
   dataChunks.map((contributes, y) =>
     contributes.map((_, x) =>
@@ -257,7 +276,7 @@ export const drawTest = (
           y0 + (y - x) * DY,
           2 * GRID_SIZE,
           GRID_SIZE,
-          H
+          height
         )
       )
     )

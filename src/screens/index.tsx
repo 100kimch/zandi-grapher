@@ -6,7 +6,7 @@ import { MainBlock } from './styles';
 export default () => {
   const dx = 30,
     dy = 30,
-    rawData = Array.from(Array(28).keys());
+    rawData = Array.from(Array(56).keys());
 
   const [contributeChunks, setContributeChunks] = useState<number[][]>([]);
 

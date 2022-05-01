@@ -4,7 +4,7 @@ export const MainBlock = styled.div`
   padding: 2em 0;
 
   #sample1 {
-    height: 15em;
+    height: 20em;
     overflow: hidden;
   }
 `;
